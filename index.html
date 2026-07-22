@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Mike's Training System</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Inter:wght@300;400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --red:#C0392B;--red2:#a93226;
+  --bg:#0A0A0A;--s1:#111;--s2:#181818;--card:#1C1C1C;
+  --b1:#222;--b2:#2A2A2A;--b3:#333;
+  --amber:#E8A020;--adim:#7A4A00;--aglow:rgba(232,160,32,.07);
+  --green:#27AE60;--gdim:rgba(39,174,96,.15);
+  --blue:#2980B9;
+  --txt:#DEDEDE;--dim:#777;--mid:#AAA;
+  --white:#F0F0F0;
+}
+
+body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;}
+
+/* ── HEADER ── */
+.hdr{background:var(--s1);border-bottom:3px solid var(--red);padding:14px 14px 0;position:sticky;top:0;z-index:200;}
+.hdr-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.hdr h1{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(1.5rem,5vw,2rem);text-transform:uppercase;letter-spacing:.04em;color:var(--white);line-height:1;}
+.hdr h1 em{font-style:normal;color:var(--red);}
+.hdr-sub{font-size:.58rem;color:var(--dim);letter-spacing:.15em;text-transform:uppercase;margin-top:3px;}
+.session-badge{background:var(--aglow);border:1px solid var(--adim);border-radius:3px;padding:4px 10px;text-align:center;flex-shrink:0;}
+.session-badge .sbn{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;color:var(--amber);line-height:1;}
+.session-badge .sbl{font-size:.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);}
+.tabs{display:flex;margin-top:12px;}
+.tab{flex:1;padding:9px 2px;background:transparent;color:var(--dim);border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.tab.on{color:var(--white);border-bottom-color:var(--red);}
+
+/* ── VIEWS ── */
+.view{display:none;}.view.on{display:block;}
+
+/* ── TIMER ── */
+.tbar{background:var(--s1);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--b2);flex-wrap:wrap;justify-content:center;}
+.tdisp{font-family:'Barlow Condensed',sans-serif;font-size:2.2rem;font-weight:900;color:var(--white);min-width:80px;text-align:center;letter-spacing:.04em;transition:color .3s;}
+.tdisp.warn{color:var(--amber);}
+.tdisp.done{color:var(--green);}
+.tlabel{font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:1px;}
+.mode-btns{display:flex;gap:3px;}
+
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--s1);padding:8px 14px 10px;border-bottom:1px solid var(--b2);position:sticky;top:var(--hdr-h,84px);z-index:100;}
+.prog-row{display:flex;justify-content:space-between;font-size:.58rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
+.prog-track{background:var(--b2);height:3px;border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:2px;background:var(--red);transition:width .4s ease;}
+
+/* ── BUTTONS ── */
+.btn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;border:none;cursor:pointer;padding:7px 14px;border-radius:3px;transition:all .15s;white-space:nowrap;}
+.br{background:var(--red);color:#fff;}.br:active{background:var(--red2);}
+.bs{background:var(--b3);color:var(--txt);}.bs:active{background:#444;}
+.ba{background:var(--amber);color:#000;}.ba:active{background:#c8880e;}
+.bg{background:var(--green);color:#fff;}.bg:active{background:#219a52;}
+.bo{background:transparent;border:1px solid var(--b3);color:var(--dim);}
+.bo:active{border-color:var(--amber);color:var(--amber);}
+.bo.ck{border-color:var(--green);color:var(--green);background:var(--gdim);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-sm{font-size:.62rem;padding:4px 9px;}
+
+/* ── CONTAINER ── */
+.ctr{padding:12px 12px 100px;max-width:700px;margin:0 auto;}
+
+/* ── PHASE BAR ── */
+.phase-bar{background:var(--s1);border-left:3px solid var(--amber);padding:10px 12px;margin-bottom:12px;border-radius:0 3px 3px 0;}
+.phase-ey{font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:2px;}
+.phase-ti{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.05rem;text-transform:uppercase;color:var(--white);letter-spacing:.02em;}
+.phase-de{font-size:.68rem;color:var(--dim);margin-top:4px;line-height:1.6;}
+
+/* ── SWITCHERS ── */
+.sw-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+
+/* ── SECTION LABEL ── */
+.sec-lbl{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--red);margin:16px 0 7px;padding-bottom:4px;border-bottom:1px solid var(--b1);}
+
+/* ── EXERCISE CARD ── */
+.xcard{background:var(--card);border:1px solid var(--b2);border-radius:4px;margin-bottom:6px;overflow:hidden;transition:border-color .15s;}
+.xcard.open{border-color:var(--amber);}
+.xcard.done{border-color:var(--green);opacity:.72;}
+.xtop{display:flex;align-items:flex-start;gap:8px;padding:10px 11px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.xname{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.9rem;text-transform:uppercase;letter-spacing:.03em;color:var(--white);line-height:1.2;}
+.xmus{font-size:.57rem;color:var(--amber);letter-spacing:.07em;margin-top:2px;}
+.xtags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.xtag{font-size:.55rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 5px;border-radius:2px;border:1px solid var(--b2);color:var(--dim);}
+.xtag.a{border-color:var(--adim);color:var(--amber);background:var(--aglow);}
+.xtag.g{border-color:rgba(39,174,96,.3);color:var(--green);background:var(--gdim);}
+.xtag.b{border-color:rgba(41,128,185,.3);color:var(--blue);}
+.xchk{font-size:.95rem;color:var(--b3);flex-shrink:0;margin-top:1px;transition:color .15s;}
+.xcard.done .xchk{color:var(--green);}
+
+/* ── EXERCISE PANEL ── */
+.xpanel{display:none;border-top:1px solid var(--b1);background:#151515;padding:11px;}
+.xcard.open .xpanel{display:block;}
+.panel-lbl{font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;margin-top:10px;}
+.panel-lbl:first-child{margin-top:0;}
+.cue-txt{font-size:.71rem;color:var(--mid);line-height:1.7;}
+.fire-row{display:flex;align-items:center;flex-wrap:wrap;gap:3px;margin-top:5px;}
+.fstep{font-size:.57rem;padding:2px 6px;border-radius:2px;border:1px solid var(--b2);color:var(--dim);}
+.fstep.p{border-color:var(--adim);color:var(--amber);background:var(--aglow);}
+.fstep.r{border-color:rgba(192,57,43,.4);color:#e07070;background:rgba(192,57,43,.06);}
+.farrow{color:var(--b3);font-size:.65rem;}
+.warn-txt{font-size:.63rem;color:#e07070;margin-top:8px;line-height:1.6;}
+.warn-txt::before{content:"⚠ ";}
+
+/* ── SET LOGGER ── */
+.set-logger{border-top:1px solid var(--b1);margin-top:10px;padding-top:10px;}
+.set-entries{margin-bottom:6px;}
+.set-entry{background:var(--s1);border:1px solid var(--b1);border-radius:3px;padding:4px 8px;margin-bottom:3px;font-size:.63rem;color:var(--dim);display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.set-entry .snum{color:var(--amber);font-size:.55rem;letter-spacing:.1em;flex-shrink:0;}
+.set-entry .sdata{flex:1;}
+.set-entry .snote{font-style:italic;color:#555;font-size:.58rem;}
+.sform{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;}
+.sin{background:var(--s1);border:1px solid var(--b2);border-radius:3px;color:var(--white);padding:6px 8px;font-size:.73rem;outline:none;width:100%;font-family:'Inter',sans-serif;-webkit-appearance:none;}
+.sin:focus{border-color:var(--amber);}
+.sin.full{grid-column:1/-1;}
+.sbtns{display:flex;gap:5px;margin-top:4px;}
+.rm-btn{background:none;border:none;color:#c0392b;cursor:pointer;font-size:.9rem;padding:0 4px;flex-shrink:0;}
+
+/* ── SESSION NOTE ── */
+.session-note{width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:3px;color:var(--white);padding:8px;font-size:.72rem;outline:none;resize:none;font-family:'Inter',sans-serif;line-height:1.6;}
+.session-note:focus{border-color:var(--amber);}
+
+/* ── FINISH BAR ── */
+.finish-bar{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--b2);padding:10px 14px;display:flex;gap:8px;align-items:center;z-index:150;}
+.finish-info{flex:1;}
+.finish-main{font-size:.65rem;color:var(--dim);}
+.finish-main b{color:var(--amber);}
+.finish-phase{font-size:.55rem;color:var(--dim);letter-spacing:.08em;margin-top:1px;}
+
+/* ── HISTORY ── */
+.hist-card{background:var(--card);border:1px solid var(--b2);border-radius:4px;padding:11px;margin-bottom:7px;}
+.hist-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.hist-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.92rem;text-transform:uppercase;color:var(--white);}
+.hist-meta{font-size:.6rem;color:var(--dim);margin-top:2px;line-height:1.5;}
+.hist-badge{font-size:.55rem;color:var(--amber);background:var(--aglow);padding:2px 7px;border-radius:2px;border:1px solid var(--adim);flex-shrink:0;}
+.hist-note{font-size:.63rem;color:#555;font-style:italic;margin-top:4px;}
+.hist-ex{margin-top:7px;border-top:1px solid var(--b1);padding-top:7px;}
+.hist-ex-row{font-size:.63rem;color:var(--dim);line-height:1.8;}
+.hist-ex-row b{color:var(--mid);}
+.hist-expand{background:none;border:none;color:var(--dim);cursor:pointer;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;margin-top:5px;padding:0;font-family:'Barlow Condensed',sans-serif;font-weight:600;}
+
+/* ── AI COACH ── */
+.ai-wrap{padding:12px 12px 90px;max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:8px;}
+.ai-header{background:var(--s1);border-left:3px solid var(--amber);padding:10px 12px;border-radius:0 3px 3px 0;margin-bottom:4px;}
+.aim{border-radius:4px;padding:9px 11px;font-size:.72rem;line-height:1.75;max-width:92%;}
+.aim.u{background:#12121e;border:1px solid #1e1e3a;color:#8888cc;align-self:flex-end;}
+.aim.a{background:var(--card);border:1px solid var(--b2);color:var(--txt);}
+.aim.loading{color:var(--dim);animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+.ai-bar{position:fixed;bottom:0;left:0;right:0;background:var(--s1);border-top:1px solid var(--b2);padding:9px;display:flex;gap:7px;z-index:150;}
+.ai-in{flex:1;background:var(--bg);border:1px solid var(--b2);border-radius:3px;color:var(--white);padding:8px 10px;font-size:.73rem;outline:none;font-family:'Inter',sans-serif;}
+.ai-in:focus{border-color:var(--amber);}
+.qbtn{background:var(--card);border:1px solid var(--b2);border-radius:4px;padding:8px 11px;color:var(--dim);cursor:pointer;font-size:.68rem;text-align:left;width:100%;margin-bottom:5px;transition:border-color .15s,color .15s;-webkit-tap-highlight-color:transparent;}
+.qbtn:active{border-color:var(--amber);color:var(--amber);}
+
+/* ── PROGRAM VIEW ── */
+.prog-ph-card{background:var(--card);border:1px solid var(--b2);border-left:3px solid var(--b2);border-radius:4px;padding:11px;margin-bottom:9px;transition:border-color .15s;}
+.prog-ph-card.cur{border-left-color:var(--red);}
+.prog-ph-hd{cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.prog-ph-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1rem;text-transform:uppercase;color:var(--white);display:flex;justify-content:space-between;align-items:center;}
+.prog-ph-desc{font-size:.67rem;color:var(--dim);line-height:1.6;margin-top:4px;}
+.prog-day{border-top:1px solid var(--b1);margin-top:8px;padding-top:8px;font-size:.62rem;color:var(--dim);}
+.prog-day b{color:var(--amber);}
+.prog-day-exs{margin-top:3px;font-size:.6rem;color:#444;line-height:1.7;}
+.prog-day-exs span{color:#555;}
+.phase-ex-detail{display:none;}
+.phase-ex-detail.open{display:block;}
+
+/* ── STATS STRIP ── */
+.stats-strip{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.stat-box{background:var(--card);border:1px solid var(--b2);border-radius:3px;padding:8px 12px;flex:1;min-width:80px;text-align:center;}
+.stat-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.4rem;color:var(--amber);line-height:1;}
+.stat-lbl{font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:2px;}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;color:var(--dim);font-size:.73rem;padding:36px 16px;line-height:1.9;}
+.empty .eicon{font-size:2rem;margin-bottom:10px;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--b3);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="hdr" id="hdr">
+  <div class="hdr-top">
+    <div>
+      <h1>Mike's <em>Training</em> System</h1>
+      <div class="hdr-sub">Neuromuscular Rebuild · Age 42 · Ground Up</div>
+    </div>
+    <div class="session-badge">
+      <div class="sbn" id="badge-num">Ph 1</div>
+      <div class="sbl" id="badge-day">Sess A</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="sv('today',this)">Today</button>
+    <button class="tab" onclick="sv('history',this)">History</button>
+    <button class="tab" onclick="sv('coach',this)">AI Coach</button>
+    <button class="tab" onclick="sv('program',this)">Program</button>
+  </div>
+</div>
+
+<!-- TODAY -->
+<div class="view on" id="view-today">
+  <div class="tbar">
+    <div>
+      <div class="tlabel">Session Timer</div>
+      <div class="tdisp" id="tdisp">00:00</div>
+    </div>
+    <button class="btn br" id="tbtn" onclick="toggleTimer()">Start</button>
+    <button class="btn bs" onclick="resetTimer()">Reset</button>
+    <div>
+      <div class="tlabel">Mode</div>
+      <div class="mode-btns">
+        <button class="btn br btn-sm" id="m-sw" onclick="setMode('sw')">SW</button>
+        <button class="btn bs btn-sm" id="m-20" onclick="setMode(20)">20m</button>
+        <button class="btn bs btn-sm" id="m-30" onclick="setMode(30)">30m</button>
+        <button class="btn bs btn-sm" id="m-45" onclick="setMode(45)">45m</button>
+      </div>
+    </div>
+  </div>
+  <div class="prog-wrap" id="prog-wrap">
+    <div class="prog-row">
+      <span id="prog-txt">0 of 0 complete</span>
+      <span id="prog-pct" style="color:var(--red)">0%</span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="ctr" id="today-ctr"></div>
+  <div class="finish-bar">
+    <div class="finish-info">
+      <div class="finish-main" id="finish-main">Ready to train</div>
+      <div class="finish-phase" id="finish-phase"></div>
+    </div>
+    <button class="btn bg" id="finish-btn" onclick="finishSession()" disabled>Finish Session →</button>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="view" id="view-history">
+  <div class="ctr" id="hist-ctr"></div>
+</div>
+
+<!-- AI COACH -->
+<div class="view" id="view-coach">
+  <div class="ai-wrap" id="ai-msgs"></div>
+  <div class="ai-bar">
+    <input class="ai-in" id="ai-in" placeholder="Ask your coach anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}"/>
+    <button class="btn br" id="ai-send" onclick="sendAI()">Send</button>
+  </div>
+</div>
+
+<!-- PROGRAM -->
+<div class="view" id="view-program">
+  <div class="ctr" id="prog-ctr"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// PROGRAM DATA — 4 Phases, 8 Sessions, Full Exercise Library
+// ═══════════════════════════════════════════════════════
+const PROG = [
+{
+  phase:1, name:"Wake Up", sub:"Neural Reset & Breathing Foundation",
+  weeks:"Weeks 1–2", freq:"Daily · 20 min",
+  color:"#E8A020",
+  desc:"Before any muscle can work correctly, your nervous system must learn to breathe, brace, and sense position. This phase rewires the neural foundation everything else is built on. It looks simple. It is not.",
+  days:[
+  {
+    day:"Session A", focus:"Breathing + Core + Feet",
+    sections:[
+    { name:"Breathing Reset", ex:[
+      {id:"p1a1",n:"90/90 Diaphragmatic Breathing",m:"Diaphragm · Deep Core · Pelvic Floor",
+       sets:"3",reps:"5 breaths",wt:"BW",
+       fire:[{t:"Inhale → belly expands 360°",p:1},{t:"Pelvic floor lifts gently on exhale",p:1},{t:"Core pressure builds — no hard brace",p:0}],
+       cue:"Lie on back, knees up. Inhale through nose — belly, sides, and low back all expand. On exhale, feel the pelvic floor gently lift. This is your foundation. Every exercise in this program starts with this breath pattern.",
+       warn:"Chest or shoulders rising first = diaphragm dysfunction. Stay here until the belly moves first, every time."},
+      {id:"p1a2",n:"Box Breathing 4-4-4-4",m:"Nervous System · Diaphragm · Vagal Tone",
+       sets:"2",reps:"6 rounds",wt:"BW",
+       fire:[{t:"Inhale 4s",p:0},{t:"Hold 4s",p:0},{t:"Exhale 4s",p:0},{t:"Hold 4s",p:0}],
+       cue:"Inhale 4 counts, hold 4, exhale 4, hold 4. Activates the parasympathetic system. Your muscles cannot learn new movement patterns when the nervous system is in fight-or-flight. This is not optional fluff — it is step one of neuromuscular reprogramming.",
+       warn:""},
+    ]},
+    { name:"Deep Core Activation", ex:[
+      {id:"p1a3",n:"Dead Bug — 4-Second Lower",m:"TVA · Multifidus · Diaphragm · Pelvic Floor",
+       sets:"3",reps:"6 each side",wt:"BW",
+       fire:[{t:"Exhale → TVA braces first",p:1},{t:"Spine imprints floor",p:1},{t:"Opposite arm & leg lower 4 seconds",p:0},{t:"Low back NEVER leaves floor",p:1}],
+       cue:"On your back, arms and legs at 90°. Exhale hard and brace your deep abs. Lower opposite arm and leg in 4 slow seconds without your lower back arching off the floor. If your back lifts — range is too big. The spine must not move. This is the single most important core exercise in the program.",
+       warn:"Feeling hip flexors strain = core isn't bracing correctly. Exhale harder and draw the navel in before you move."},
+      {id:"p1a4",n:"Supine Pelvic Tilt + Hold",m:"Glute Max · TVA · Spinal Reset",
+       sets:"3",reps:"10 × 5-sec hold",wt:"BW",
+       fire:[{t:"Exhale",p:0},{t:"Abs draw in",p:1},{t:"Pelvis tilts posterior",p:1},{t:"Glutes engage",p:1},{t:"Hold 5s",p:0}],
+       cue:"Flatten your lower back into the floor by pulling your belt buckle toward your chin. Feel your glutes engage as your pelvis tilts back. This is the neutral spine position your body has forgotten. Every lower body exercise in this program ends in this position.",
+       warn:""},
+      {id:"p1a5",n:"Heel Slide",m:"TVA · Hip Flexors (eccentric) · Core Stability",
+       sets:"2",reps:"8 each leg",wt:"BW",
+       fire:[{t:"Brace core first",p:1},{t:"Slide heel slowly to full extension",p:0},{t:"Low back stays pinned to floor",p:1},{t:"Slide back with control",p:0}],
+       cue:"On your back. Brace deep abs, then slowly slide one heel along the floor until the leg is straight. Slide back. Back must not arch. Teaches your core to hold position while limbs move — the most basic athletic demand.",
+       warn:""},
+    ]},
+    { name:"Foot & Ankle Foundation", ex:[
+      {id:"p1a6",n:"Short Foot Exercise",m:"Foot Intrinsics · Plantar Fascia · Arch",
+       sets:"2",reps:"10 each · 5-sec hold",wt:"BW",
+       fire:[{t:"Press big toe mound down",p:1},{t:"Lift arch — don't curl toes",p:0},{t:"Hold 5s",p:0},{t:"Release fully",p:0}],
+       cue:"Sitting or standing. Without curling your toes, shorten your foot — press the ball and heel toward each other, lifting the arch. This activates the intrinsic foot muscles that stabilize everything from the ground up. Weak feet = unstable ankles = poor knee tracking = hip and glute dysfunction.",
+       warn:""},
+      {id:"p1a7",n:"Ankle Circles + Alphabet",m:"Ankle Mobility · Proprioception",
+       sets:"1",reps:"Full alphabet each foot",wt:"BW",
+       fire:[{t:"Slow controlled movement",p:0},{t:"Full range every direction",p:0}],
+       cue:"Foot raised, draw the alphabet with your big toe using full ankle range. Builds proprioception and lubricates the joint. Loss of ankle mobility causes knee and hip dysfunction upstream. Don't rush it.",
+       warn:""},
+    ]},
+  ]},
+  {
+    day:"Session B", focus:"Neck + Hip Release + Glute Wake-Up",
+    sections:[
+    { name:"Cervical Reset — Iron Neck", ex:[
+      {id:"p1b1",n:"Chin Tucks — Deep Cervical Activation",m:"Deep Cervical Flexors · Suboccipitals",
+       sets:"3",reps:"10 × 3-sec hold",wt:"BW",
+       fire:[{t:"Retract chin — NOT neck flexion",p:1},{t:"Head stays perfectly level",p:1},{t:"Deep cervical flexors fire",p:1},{t:"Suboccipitals lengthen",p:0}],
+       cue:"Gently pull your chin straight back — like making a double chin — without tilting your head. Feel the muscles at the base of your skull lengthen. These deep cervical flexors are inhibited by forward head posture. Do this before all Iron Neck work.",
+       warn:"This is NOT a neck flexion. Head stays level. If your front neck strains hard, reduce the pull."},
+      {id:"p1b2",n:"Iron Neck — Isometric Hold",m:"Cervical Stabilizers · Deep Neck Flexors/Extensors",
+       sets:"3",reps:"5 directions × 5-sec hold",wt:"Harness only",
+       fire:[{t:"Chin tucked — neutral spine",p:1},{t:"Press into each direction",p:0},{t:"Pure stabilization — no movement",p:1},{t:"Hold 5s each",p:0}],
+       cue:"Harness on, zero resistance. Press your head into the harness in each direction — forward, back, left, right — and resist for 5 seconds. Isometric only this phase. Building the foundational neck strength before adding range of motion.",
+       warn:"Zero movement this phase. Isometric holds only. Start here no matter how strong you feel — the cervical muscles are not used to direct loading."},
+      {id:"p1b3",n:"Iron Neck — Slow Rotation",m:"Neck Rotators · SCM · Cervical Stabilizers",
+       sets:"2",reps:"5 circles each direction",wt:"Lightest band",
+       fire:[{t:"Neutral spine — chin slightly tucked",p:1},{t:"Rotate slowly — 5-second full circle",p:0},{t:"Pause at front and back",p:0}],
+       cue:"Lightest resistance. Chin slightly tucked. Rotate your head in a 5-second full circle each direction. This is awareness of range of motion and building cervical deep stabilizers — the muscles that protect your spine under every loaded movement.",
+       warn:"Any dizziness, sharp pain, or tingling → stop immediately. Neck training requires conservative progression."},
+    ]},
+    { name:"Hip Release — Unlock the Glutes", ex:[
+      {id:"p1b4",n:"Psoas Release — Half-Kneeling Stretch",m:"Psoas · Iliacus · Hip Flexors",
+       sets:"2",reps:"90 sec each side",wt:"BW",
+       fire:[{t:"Posterior pelvic tilt FIRST",p:1},{t:"Then shift forward into stretch",p:0},{t:"Breathe into hip — not quad",p:0}],
+       cue:"Right knee down. BEFORE shifting forward, tuck your pelvis (belt buckle to chin). Now shift gently forward. Feel the deep front-of-hip stretch. Tight psoas = anterior pelvic tilt = inhibited glutes. This is the single most important release in your program.",
+       warn:""},
+      {id:"p1b5",n:"TFL / Lateral Hip Release",m:"TFL · IT Band · Lateral Hip",
+       sets:"2",reps:"90s right / 60s left",wt:"BW",
+       fire:[{t:"Press into outer hip just in front of IT band",p:0},{t:"Hold tender spots 5-10 breaths",p:1},{t:"Feel it soften — don't force",p:0}],
+       cue:"Lie on your side, use your bodyweight to press into the outer hip — the TFL is just in front of the IT band at the top of the thigh. RIGHT SIDE PRIORITY. This muscle is hijacking your glute med and causing your right knee to track inward on every movement.",
+       warn:""},
+    ]},
+    { name:"Glute Wake-Up", ex:[
+      {id:"p1b6",n:"Glute Bridge — Squeeze First Protocol",m:"Glute Max · Hamstrings · TVA",
+       sets:"3",reps:"12 × 3-sec hold",wt:"BW",
+       fire:[{t:"Exhale + core brace",p:1},{t:"SQUEEZE GLUTES — then hips move",p:1},{t:"Posterior tilt at top",p:1},{t:"Hold 3 seconds",p:0}],
+       cue:"On your back, knees bent, heels close. Exhale, brace core, THEN squeeze your glutes before your hips leave the ground. At the top, tuck your pelvis and hold 3 seconds. Feel the belly of the glute burning — not hamstrings, not lower back. The glute squeeze must come before the hip movement.",
+       warn:"Feeling hamstrings → move feet further from glutes. Feeling lower back → you're hyperextending. Tuck the pelvis harder."},
+      {id:"p1b7",n:"Clamshell — Pelvis Must Stay Still",m:"Glute Med · Hip External Rotators",
+       sets:"3",reps:"15 each · 2-sec hold",wt:"BW",
+       fire:[{t:"Stack hips — pelvis neutral",p:1},{t:"Open top knee — pelvis STAYS STILL",p:1},{t:"Feel glute med behind hip bone",p:1},{t:"Hold 2s — RIGHT: 1 extra set",p:0}],
+       cue:"Side-lying, hips stacked, knees bent 45°. Open top knee WITHOUT letting your pelvis rock back. Hand on glute med (above and behind the hip bone) — you should feel it contracting. If your pelvis moves, you're using TFL instead of glute med.",
+       warn:"Pelvis rocking backward = TFL compensation. Reduce range of motion until you can isolate cleanly. Right side gets one extra set every session."},
+    ]},
+  ]},
+]},
+
+{
+  phase:2, name:"Ground Up", sub:"Fundamental Patterns — Bodyweight",
+  weeks:"Weeks 2–3", freq:"4x/week · 25 min",
+  color:"#C0392B",
+  desc:"The nervous system is online. Now we groove the fundamental human movement patterns at bodyweight — teaching every muscle its exact role in the firing sequence before adding any external load.",
+  days:[
+  {
+    day:"Session A", focus:"Hip Hinge + Squat + Single Leg",
+    sections:[
+    { name:"Hip Hinge Pattern", ex:[
+      {id:"p2a1",n:"Hip Hinge to Wall",m:"Glute Max · Hamstrings · Spinal Erectors",
+       sets:"3",reps:"12",wt:"BW",
+       fire:[{t:"Soft knee bend",p:0},{t:"Push hips BACK to wall",p:1},{t:"Spine long — not rounded",p:0},{t:"Drive hips forward — GLUTES FIRST",p:1}],
+       cue:"Stand 6 inches from a wall. Soft knee bend, push your hips straight back to touch the wall. Keep your back flat — not rounded. Drive hips forward to stand by squeezing glutes first. This is the hip hinge pattern your Romanian deadlifts will be built on.",
+       warn:""},
+      {id:"p2a2",n:"Good Morning — Empty Bar",m:"Hamstrings · Glutes · Spinal Erectors · Core",
+       sets:"3",reps:"10",wt:"45lb bar",
+       fire:[{t:"Brace core — big breath",p:1},{t:"Hinge at HIPS — not waist",p:1},{t:"Bar stays over mid-foot",p:0},{t:"Drive hips to stand — glutes initiate",p:1}],
+       cue:"45lb bar on upper back. Soft knee bend, hinge forward until torso is ~45°, then drive back to standing by squeezing glutes. No added weight — grooving the pattern only. Feel hamstrings stretch at the bottom, glutes contract at the top.",
+       warn:""},
+    ]},
+    { name:"Squat Pattern", ex:[
+      {id:"p2a3",n:"Box Squat — 3-Second Pause",m:"Quads · Glute Max · Glute Med · Core",
+       sets:"4",reps:"8",wt:"BW",
+       fire:[{t:"Spread the floor with feet",p:1},{t:"Sit back AND down — not just down",p:0},{t:"Knees track over 2nd toe",p:1},{t:"Pause 3 full seconds",p:0},{t:"Glutes fire → knees out → stand",p:1}],
+       cue:"Sit to box at parallel, pause 3 full seconds. Before driving up: 'spread the floor' (push feet outward without moving them) and 'knees out.' These cues externally rotate the hip and force glutes into the drive. The pause kills the stretch reflex — you cannot cheat your way up.",
+       warn:"Right knee caving inward on drive = glute med failure. Use a light resistance band above the knees as feedback."},
+      {id:"p2a4",n:"Goblet Squat — Low Cable",m:"Quads · Glutes · Upper Back · Core",
+       sets:"3",reps:"10",wt:"Light cable",
+       fire:[{t:"Hold cable at chest — elbows drive knees out",p:1},{t:"Sit BETWEEN heels — full depth",p:0},{t:"Chest stays tall",p:0},{t:"Drive through heels — glutes",p:1}],
+       cue:"Hold low cable D-handle at chest. Squat deep — think 'sit between your heels.' Elbows drive your knees out throughout. Teaches upright torso squatting and knee tracking simultaneously. The cable pull forces your upper back to work.",
+       warn:""},
+      {id:"p2a5",n:"Reverse Lunge — Slow Tempo",m:"Glute Max · Quad · Glute Med · Core",
+       sets:"3",reps:"8 each",wt:"BW",
+       fire:[{t:"Step back — front shin stays vertical",p:0},{t:"Drive through FRONT HEEL to return",p:1},{t:"Front glute max fires to stand",p:1},{t:"Glute med holds knee tracking",p:1}],
+       cue:"Step one foot back. Front shin stays vertical. Drive through your FRONT HEEL to return — not off the back foot. Lean torso slightly forward (10°) to load the front glute more than if you stay upright. Right side: extra focus on knee tracking outward.",
+       warn:""},
+    ]},
+    { name:"Single Leg Stability", ex:[
+      {id:"p2a6",n:"Single-Leg Glute Bridge",m:"Glute Max · Glute Med · Hamstrings",
+       sets:"3",reps:"10 each · 2-sec hold",wt:"BW",
+       fire:[{t:"Brace core",p:1},{t:"Squeeze standing glute first",p:1},{t:"Lift other foot",p:0},{t:"Hip drives up — glute initiates",p:1},{t:"Hips stay LEVEL — glute med holds",p:1}],
+       cue:"Right side first every set. Hand on right glute — feel it contracting at the top? Hips should be perfectly level. If the left hip drops, your right glute med is failing. Hold 2 seconds at the top. This is your primary right-side diagnostic exercise.",
+       warn:"Right hip rotating inward at the top = TFL compensating. 'Knee out, toe forward' while holding the top position."},
+    ]},
+  ]},
+  {
+    day:"Session B", focus:"Push + Pull + Anti-Rotation",
+    sections:[
+    { name:"Scapular Control — Foundation First", ex:[
+      {id:"p2b1",n:"Wall Slide",m:"Lower Traps · Serratus Anterior · Rotator Cuff",
+       sets:"3",reps:"10",wt:"BW",
+       fire:[{t:"Back flat on wall",p:0},{t:"Arms in goalpost position",p:0},{t:"Slide up — shoulders DOWN, not shrugging",p:1},{t:"Feel lower traps working",p:1}],
+       cue:"Back against wall, arms in goalpost position. Slide arms up the wall while keeping shoulders pulled DOWN. You should feel the lower trapezius and serratus working. This scapular upward rotation must happen before any pressing movement — without it, your rotator cuff pays the price.",
+       warn:"Lower back arching off wall as arms rise = limited thoracic mobility. Work whatever range you can do cleanly."},
+      {id:"p2b2",n:"Band Pull-Apart — 3 Heights",m:"Rear Delts · Rhomboids · External Rotators",
+       sets:"3",reps:"15 each height",wt:"Light band",
+       fire:[{t:"Arms straight — no bend",p:0},{t:"Pull apart at each height",p:0},{t:"Hold 1s at full pull",p:0},{t:"Slow return — control the band",p:0}],
+       cue:"Light resistance band. Pull apart at chest height, forehead height, and hip height. 45 total reps. Non-negotiable before any pressing. Targets the full posterior shoulder complex.",
+       warn:""},
+    ]},
+    { name:"Pushing Pattern", ex:[
+      {id:"p2b3",n:"Push-Up — Perfect Form Only",m:"Chest · Anterior Delts · Triceps · Serratus · Core",
+       sets:"3",reps:"8–12",wt:"BW",
+       fire:[{t:"Core braced — full body tension",p:1},{t:"Scapulae move WITH the motion",p:0},{t:"Lower 3 seconds",p:0},{t:"Push FLOOR away — don't collapse to hands",p:1}],
+       cue:"Elevate hands on bench if full push-ups aren't perfect yet. Hands slightly wider than shoulders, elbows flare 45°. Lower in 3 seconds. At the bottom, feel the chest stretch. Drive back up by pushing the floor away. Perfect 8 beats sloppy 20 every time.",
+       warn:"Hips sagging or head dropping = core not engaged. Elevate hands until you can do it perfectly."},
+      {id:"p2b4",n:"Landmine Press — Half-Kneeling",m:"Upper Chest · Anterior Delt · Tricep · Core Anti-Rotation",
+       sets:"3",reps:"10 each",wt:"Bar only",
+       fire:[{t:"Half-kneeling — brace core hard",p:1},{t:"Press bar diagonally from shoulder",p:0},{t:"Full extension",p:0},{t:"Slow return — 3 seconds",p:0}],
+       cue:"Half-kneeling, one knee down. Press the landmine bar diagonally from shoulder height to full extension. Kneeling forces core stability and removes leg drive. The diagonal path is joint-friendly — much safer than overhead pressing for returning shoulders.",
+       warn:""},
+    ]},
+    { name:"Pulling Pattern", ex:[
+      {id:"p2b5",n:"Cable Row — Scapula Initiation",m:"Mid Back · Rhomboids · Rear Delts · Biceps",
+       sets:"3",reps:"12",wt:"Light",
+       fire:[{t:"Sit tall — no forward rounding",p:0},{t:"Scapulae retract FIRST",p:1},{t:"Then elbows drive back",p:0},{t:"Pause 2s at full contraction",p:1},{t:"3-second return",p:0}],
+       cue:"Sit tall. Pull the cable to your lower abdomen — but INITIATE by squeezing shoulder blades together first, then let elbows follow. This changes the primary mover from biceps to mid-back. Back should do 70% of the work. Pause 2 seconds at full contraction.",
+       warn:"Rocking forward and back = too much weight. Drop the load and feel the back work."},
+      {id:"p2b6",n:"Straight-Arm Pulldown",m:"Lats · Teres Major · Core",
+       sets:"3",reps:"15",wt:"Light",
+       fire:[{t:"Arms straight — no bend at elbow",p:0},{t:"Pull bar from overhead to hips",p:0},{t:"LATS initiate — not biceps",p:1},{t:"Feel the wings contract",p:1}],
+       cue:"Standing, facing cable. Straight arms. Pull bar from overhead down to your hips in a sweeping arc. Feel the lats — the large muscles under your armpits — doing the work. Essential lat activation before any row or pulldown variation.",
+       warn:""},
+      {id:"p2b7",n:"Face Pull — Rope High Cable",m:"Rear Delts · Rotator Cuff · Upper Back",
+       sets:"3",reps:"20",wt:"Light",
+       fire:[{t:"Rope at eye level",p:0},{t:"Pull to face — elbows HIGH and flared",p:1},{t:"Externally rotate hands at end range",p:1},{t:"Hold 1s — slow return",p:0}],
+       cue:"Rope at forehead height. Pull to your face with elbows flared high. At the end, externally rotate your hands (thumbs point backward). Do this every training day for life. Protects your rotator cuff from every pressing movement.",
+       warn:""},
+    ]},
+  ]},
+]},
+
+{
+  phase:3, name:"Load", sub:"Strength on Correct Patterns",
+  weeks:"Weeks 3–5", freq:"4x/week · 35 min",
+  color:"#C0392B",
+  desc:"The patterns are correct. Now we add load progressively. Every major lift uses the activation cues from Phases 1 & 2. Document every weight and rep so the AI coach can guide progression.",
+  days:[
+  {
+    day:"Session A", focus:"Lower Body Strength",
+    sections:[
+    { name:"Pre-Activation — Always First", ex:[
+      {id:"p3a1",n:"Glute Bridge × 20 — Wake-Up",m:"Glute Max",
+       sets:"1",reps:"20",wt:"BW",
+       fire:[{t:"Squeeze glutes BEFORE lifting",p:1},{t:"Posterior tilt at top",p:1}],
+       cue:"20 quick glute bridges to wake up the glutes before loading them. Non-negotiable pre-activation before every lower body session from here on.",
+       warn:""},
+      {id:"p3a2",n:"Clamshell × 15 — Glute Med",m:"Glute Med",
+       sets:"1",reps:"15 each",wt:"BW / light band",
+       fire:[{t:"Pelvis stays completely still",p:1},{t:"Glute med fires behind the hip",p:1}],
+       cue:"Glute med pre-activation before any squat or hinge. The glute med must be awake and firing before it can stabilize your knee under load.",
+       warn:""},
+    ]},
+    { name:"Primary Strength Lifts", ex:[
+      {id:"p3a3",n:"Romanian Deadlift",m:"Glute Max · Hamstrings · Spinal Erectors · Core",
+       sets:"4",reps:"8",wt:"Start 65–95lb",
+       fire:[{t:"Big breath — brace hard",p:1},{t:"Hip hinge back — bar drags legs",p:0},{t:"2-sec pause at bottom",p:0},{t:"GLUTES INITIATE the drive up",p:1},{t:"Posterior tilt at lockout",p:1}],
+       cue:"Pause 2 full seconds at the bottom. Then drive hips forward — GLUTES INITIATE, not your lower back. Feel hamstrings stretch on the way down, glute contraction at the top. Add 5–10lb when you complete all 4 sets with perfect form and feel the glutes doing the work.",
+       warn:"Lower back rounding or taking over = too heavy. Drop weight 20% and rebuild the pattern."},
+      {id:"p3a4",n:"Box Squat — Barbell",m:"Quads · Glute Max · Glute Med · Core",
+       sets:"4",reps:"6–8",wt:"Start 65–95lb",
+       fire:[{t:"Big breath — brace",p:1},{t:"Sit back AND down",p:0},{t:"Pause on box 2s",p:0},{t:"Spread floor — knees out",p:1},{t:"GLUTES drive — not quads",p:1}],
+       cue:"All Phase 2 box squat cues, now with a bar. 'Spread the floor' cue is essential — it keeps your knee from caving under load. Pause 2 seconds every rep. This kills momentum and forces your glutes to actually generate the force to stand.",
+       warn:"Right knee caving under load = glute med not strong enough yet. Reduce weight and add a band above knees."},
+      {id:"p3a5",n:"Cable Pull-Through — Loaded",m:"Glute Max · Hamstrings · Core",
+       sets:"3",reps:"12",wt:"Moderate",
+       fire:[{t:"Hinge back — deep hip bend",p:0},{t:"Drive hips forward — GLUTES",p:1},{t:"Posterior tilt at top — hold 1s",p:1}],
+       cue:"Face away from cable, rope between legs. Hinge deep, then drive hips through by squeezing glutes — not pulling with your arms or back. The glutes generate the entire hip extension force. Trains the explosive pattern needed for athletic performance.",
+       warn:""},
+    ]},
+    { name:"Glute Isolation", ex:[
+      {id:"p3a6",n:"Cable Kickback (Ankle Strap)",m:"Glute Max",
+       sets:"3",reps:"15 each",wt:"Light–Moderate",
+       fire:[{t:"Slight forward hinge",p:0},{t:"Kick straight back — not out to side",p:0},{t:"SQUEEZE at top — 1s hold",p:1},{t:"Control the return — 2s",p:0}],
+       cue:"Ankle strap, low cable. Slight forward hinge to isolate glute max. Kick straight back, squeeze hard at the top and hold 1 second. This range past neutral is where glute max is hardest to cheat and gets the most isolated contraction.",
+       warn:""},
+      {id:"p3a7",n:"Cable Hip Abduction — Standing",m:"Glute Med",
+       sets:"3 (right: 4)",reps:"15",wt:"Light",
+       fire:[{t:"Externally rotate leg BEFORE abducting",p:1},{t:"Heel slightly back — lead with heel",p:1},{t:"Pelvis stays level — don't lean",p:0}],
+       cue:"Ankle strap, low cable. Externally rotate the working leg first (heel slightly back). Lead with your heel, not your toe. Right side gets one extra set every session until symmetry is restored.",
+       warn:""},
+    ]},
+  ]},
+  {
+    day:"Session B", focus:"Upper Body Strength",
+    sections:[
+    { name:"Shoulder Pre-Activation", ex:[
+      {id:"p3b1",n:"Pull-Apart × 20 + Face Pull × 15",m:"Rear Delts · Rotator Cuff · Lower Traps",
+       sets:"1",reps:"35 total",wt:"Band + light cable",
+       fire:[{t:"Scapulae move first",p:1},{t:"Shoulders stay DOWN",p:1}],
+       cue:"Your upper body pre-activation every session. Non-negotiable. The rotator cuff must be warm and the scapular stabilizers must be active before you press anything heavy.",
+       warn:""},
+    ]},
+    { name:"Push", ex:[
+      {id:"p3b2",n:"Barbell Bench Press",m:"Chest · Anterior Delts · Triceps",
+       sets:"4",reps:"6–8",wt:"Start 95–135lb",
+       fire:[{t:"Feet flat — push into floor",p:0},{t:"Slight natural arch — not forced",p:0},{t:"Lower to lower chest — 2–3s",p:0},{t:"Drive up AND slightly back",p:0},{t:"Full lockout — maintain tension",p:1}],
+       cue:"Feet flat on floor, slight natural arch in lower back. Lower the bar to your lower chest in 2–3 seconds. Drive back up. Key: maintain full-body tension — squeeze your glutes and push feet into floor while pressing. This leg drive significantly increases total force output.",
+       warn:""},
+      {id:"p3b3",n:"Landmine Press — Standing",m:"Upper Chest · Anterior Delt · Tricep · Core",
+       sets:"3",reps:"10 each",wt:"25–45lb",
+       fire:[{t:"Standing — brace core",p:1},{t:"Press diagonally from shoulder",p:0},{t:"Full extension",p:0},{t:"3-sec return",p:0}],
+       cue:"Safer than overhead press for returning shoulders. The diagonal bar path is joint-friendly. Standing version adds core anti-rotation challenge that half-kneeling doesn't have.",
+       warn:""},
+      {id:"p3b4",n:"High Cable Fly",m:"Lower Chest · Pec Minor",
+       sets:"3",reps:"12–15",wt:"Light",
+       fire:[{t:"D-handles high on cable",p:0},{t:"Slight forward lean",p:0},{t:"Long arc down and in — 'hug a tree'",p:0},{t:"Elbows never below 90°",p:0}],
+       cue:"D-handles set high. Think 'hugging a tree.' Feel the pec stretching on the way out. Isolates the chest without loading the shoulder joint heavily. Great for chest development while shoulders are returning to full strength.",
+       warn:""},
+    ]},
+    { name:"Pull", ex:[
+      {id:"p3b5",n:"Barbell Deadlift",m:"Full Posterior Chain · Traps · Glutes · Hamstrings",
+       sets:"3",reps:"5",wt:"135–185lb",
+       fire:[{t:"Bar over mid-foot",p:0},{t:"Grip outside legs — brace",p:0},{t:"Push FLOOR away — don't pull bar",p:1},{t:"Hips and shoulders rise together",p:1},{t:"Lock out — squeeze glutes HARD",p:1}],
+       cue:"Think 'push the floor away' instead of 'pull the bar' — this engages the posterior chain correctly. At lockout, squeeze your glutes hard and stand tall. Add 5–10lb every session you complete all 3 sets clean with perfect form.",
+       warn:"ANY lower back rounding at any weight = stop and deload. Lower back injury will set you back months."},
+      {id:"p3b6",n:"Cable Row — Heavy, Scapula First",m:"Mid Back · Rhomboids · Rear Delts",
+       sets:"3",reps:"10–12",wt:"Moderate–Heavy",
+       fire:[{t:"Scapulae retract first",p:1},{t:"Elbows drive back",p:0},{t:"Pause 2s at chest",p:1},{t:"3-sec return",p:0}],
+       cue:"Heavier than Phase 2. Same cue — scapulae initiate every rep. Pause at full contraction and feel your mid-back squeezing.",
+       warn:""},
+      {id:"p3b7",n:"Lat Pulldown — Straight Bar",m:"Lats · Teres Major · Rear Delts",
+       sets:"3",reps:"10–12",wt:"Moderate",
+       fire:[{t:"Slight lean back",p:0},{t:"Pull to upper chest",p:0},{t:"Elbows drive DOWN and BACK",p:1},{t:"Squeeze lats at bottom — hold 1s",p:1}],
+       cue:"Slight lean back. Pull bar to upper chest while driving elbows down toward your hips. At the bottom, feel the lats — the large muscles under your armpits — contracting hard. Hold 1 second at the bottom.",
+       warn:""},
+    ]},
+    { name:"Iron Neck", ex:[
+      {id:"p3b8",n:"Iron Neck — Flex / Ext / Lateral",m:"All Cervical Groups",
+       sets:"2",reps:"10 each direction",wt:"Light–Moderate",
+       fire:[{t:"Chin tuck before each direction",p:1},{t:"2-sec movement each way",p:0},{t:"Control both directions equally",p:0}],
+       cue:"With resistance now. Forward (chin to chest), backward (look up), each side (ear to shoulder). Two seconds each way, full range of motion. Progressively building the cervical muscles that protect your spine under every loaded movement.",
+       warn:"Back off resistance immediately if any dizziness, sharp pain, or tingling."},
+    ]},
+  ]},
+]},
+
+{
+  phase:4, name:"Rebuild", sub:"Full Integration + Longevity",
+  weeks:"Weeks 5–8", freq:"4x/week · 40 min",
+  color:"#27AE60",
+  desc:"All systems online. Major lifts loaded. Now we add the highest-yield movements for your goals: hip thrusts for glute max peak contraction, split squats for unilateral strength, and mobility work for long-term joint health.",
+  days:[
+  {
+    day:"Session A", focus:"Glute Max Strength + Hip Power",
+    sections:[
+    { name:"Peak Glute Work", ex:[
+      {id:"p4a1",n:"Barbell Hip Thrust",m:"Glute Max (peak EMG) · Hamstrings · Core",
+       sets:"4",reps:"10 × 2-sec hold",wt:"Start 95lb → add 10lb/session",
+       fire:[{t:"Bar on hip crease — use pad",p:0},{t:"SQUEEZE GLUTES before lifting",p:1},{t:"Drive hips up",p:0},{t:"POSTERIOR TILT at top",p:1},{t:"Hold 2s — chin tucked",p:1}],
+       cue:"Highest glute EMG of any exercise. Squeeze glutes FIRST before hips leave the floor. At the top: posterior tilt, fully contracted glutes, hold 2 seconds, chin tucked (NOT looking at ceiling — that hyperextends your lumbar). If right hip drops at top, hold that side an extra second. Add 10lb per session as long as form holds.",
+       warn:"Chin up = hyperextended lower back = lumbar pain. Tuck the chin. Hips tucked, not hyperextended at the top."},
+      {id:"p4a2",n:"Single-Leg Hip Thrust — Right Priority",m:"Glute Max · Glute Med · Hamstrings",
+       sets:"3",reps:"8 each · 1-sec hold",wt:"BW → progress to band",
+       fire:[{t:"One foot raised",p:0},{t:"Standing leg glute does ALL the work",p:1},{t:"Hips stay LEVEL — both sides",p:1}],
+       cue:"One foot raised. Drive through standing heel only. Right side first every set. If the raised hip drops significantly lower — that's your deficit made visible. Goal is symmetric height at the top of every rep.",
+       warn:""},
+    ]},
+    { name:"Unilateral Lower Body", ex:[
+      {id:"p4a3",n:"Bulgarian Split Squat",m:"Glute Max · Quad · Glute Med · Core",
+       sets:"3",reps:"8–10 each",wt:"Light DBs or goblet",
+       fire:[{t:"Rear foot on bench",p:0},{t:"Front foot far — shin vertical at bottom",p:0},{t:"10–15° forward lean",p:1},{t:"Drive through FRONT HEEL",p:1},{t:"Front glute max fires to stand",p:1},{t:"Squeeze at top before lowering",p:1}],
+       cue:"The 10–15° forward lean is critical — upright torso = quad dominant, forward lean = glute dominant. Drive through your front heel to stand. Squeeze the front glute fully at the top before lowering into the next rep.",
+       warn:"Upright torso = quad dominant. Lean forward to load the glute."},
+      {id:"p4a4",n:"Single-Leg RDL — The Diagnostic",m:"Glute Max · Glute Med · Hamstrings · Core",
+       sets:"3",reps:"8 each",wt:"Light DB",
+       fire:[{t:"Stand on right leg",p:0},{t:"Hinge — left leg extends behind",p:0},{t:"Hips SQUARE to floor — glute med holds",p:1},{t:"Drive through right heel — glute max fires",p:1},{t:"Stand tall — hips perfectly level",p:1}],
+       cue:"The ultimate right-side diagnostic. Your right glute med must keep the left hip from dropping. Drive through your right heel to stand. Right knee caving or left hip dropping = your two weak links made visible. Start holding a wall for balance if needed.",
+       warn:"Right knee caving or left hip dropping = return to Phase 1B activation work before loading this further."},
+    ]},
+    { name:"Core Power", ex:[
+      {id:"p4a5",n:"Pallof Press",m:"Obliques · TVA · Core Anti-Rotation",
+       sets:"3",reps:"12 each side",wt:"Moderate",
+       fire:[{t:"Stand perpendicular to cable",p:0},{t:"Brace core — breathe in",p:1},{t:"Press arms OUT — hold 2s",p:0},{t:"Resist the rotation the entire time",p:1}],
+       cue:"Cable at chest height, stand sideways. Press arms straight out, hold 2 seconds. The cable is trying to rotate you — your core is resisting. This is the most functional core exercise for protecting your spine under load. Do NOT let hips or shoulders rotate.",
+       warn:""},
+      {id:"p4a6",n:"Landmine Rotation",m:"Obliques · Shoulders · Hips · Core",
+       sets:"3",reps:"10 each",wt:"Light–25lb",
+       fire:[{t:"Hold bar at chest — feet hip width",p:0},{t:"Feet pivot with the movement",p:0},{t:"Rotate through thoracic spine",p:1},{t:"Control the arc both ways equally",p:0}],
+       cue:"Explosive yet controlled. Power comes from hip drive and thoracic rotation. This trains the rotational power that was absent during your glute inhibition period — your base was unstable, so rotation was impossible. Now it isn't.",
+       warn:""},
+    ]},
+  ]},
+  {
+    day:"Session B", focus:"Upper Body Power + Mobility",
+    sections:[
+    { name:"Upper Body Power", ex:[
+      {id:"p4b1",n:"Close-Grip Bench Press",m:"Triceps · Inner Chest",
+       sets:"3",reps:"8",wt:"75–115lb",
+       fire:[{t:"Shoulder-width grip — not too narrow",p:0},{t:"Elbows tuck to 45°",p:0},{t:"Lower with control",p:0},{t:"Press and lock out fully",p:0}],
+       cue:"Shoulder-width grip (not super narrow — hard on wrists). Elbows tuck at 45°. Brutal tricep and inner chest builder without wrist strain.",
+       warn:""},
+      {id:"p4b2",n:"Cable Lateral Raise",m:"Medial Delts",
+       sets:"3",reps:"15 each",wt:"Light",
+       fire:[{t:"D-handle at ankle height",p:0},{t:"Raise to shoulder level",p:0},{t:"Lead with ELBOW — not hand",p:1},{t:"1-sec hold at top",p:0}],
+       cue:"Single cable D-handle. Raise arm to side to shoulder level leading with the elbow, not the hand. Builds the round shoulder cap. Medial delt = width.",
+       warn:""},
+      {id:"p4b3",n:"Single-Arm Cable Row",m:"Lats · Biceps · Core Anti-Rotation",
+       sets:"3",reps:"12 each",wt:"Moderate",
+       fire:[{t:"One arm at a time",p:0},{t:"Slight torso rotation each rep",p:0},{t:"Full stretch — full contraction",p:1}],
+       cue:"One arm allows you to feel each side individually and identify imbalances. Slight torso rotation on each rep adds rotational core work. Document if one side feels significantly weaker — that's data for the coach.",
+       warn:""},
+      {id:"p4b4",n:"Barbell Shrug",m:"Upper Traps · Cervical Spine Protection",
+       sets:"3",reps:"15",wt:"95–135lb",
+       fire:[{t:"Pull straight UP — vertical path",p:0},{t:"Hold 1s at top",p:0},{t:"SLOW controlled descent",p:0},{t:"Do NOT roll shoulders",p:1}],
+       cue:"Vertical path only — do not roll the shoulders. Hold 1 second at the top. Large traps protect your neck and spine under all loaded movements. More important than they look.",
+       warn:""},
+    ]},
+    { name:"Mobility — Non-Negotiable", ex:[
+      {id:"p4b5",n:"90/90 Hip Stretch",m:"Hip Flexors · External Rotators · Piriformis",
+       sets:"2",reps:"90 sec each side",wt:"BW",
+       fire:[{t:"Both knees at 90°",p:0},{t:"Lean into front hip",p:0},{t:"Switch — lean into back hip",p:0},{t:"Breathe into each position",p:0}],
+       cue:"The most important mobility exercise for anterior pelvic tilt. Sit with both knees bent at 90°, lean into each position. Both sides, every session. Hip health = pain-free squatting and walking for life. Never skip this.",
+       warn:""},
+      {id:"p4b6",n:"Thoracic Spine Rotation",m:"Thoracic Mobility · Shoulder Health",
+       sets:"2",reps:"10 each side",wt:"BW",
+       fire:[{t:"Side-lying — hips stacked",p:0},{t:"Top arm rotates open",p:0},{t:"Hips stay stacked — don't roll",p:1},{t:"Feel thoracic spine rotating",p:1}],
+       cue:"Side-lying, hips stacked. Rotate your top arm and chest open while keeping hips still. Thoracic mobility is essential for shoulder health, deadlift posture, and breathing capacity. Loss of thoracic mobility causes neck and lower back pain.",
+       warn:""},
+      {id:"p4b7",n:"Iron Neck — Full Protocol",m:"All Cervical Groups + Upper Traps",
+       sets:"2",reps:"Full circuit",wt:"Moderate",
+       fire:[{t:"Flexion/extension × 10",p:0},{t:"Lateral flexion × 10 each side",p:0},{t:"Rotation circles × 5 each",p:0},{t:"Diagonal patterns × 8",p:0}],
+       cue:"Full Iron Neck session with progressive resistance. Flexion, extension, lateral flexion each side, rotation circles, diagonal patterns. A strong neck protects your spine under every loaded exercise for life.",
+       warn:"Back off resistance immediately if any dizziness or sharp pain."},
+    ]},
+  ]},
+]},
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+let cPh=0, cDay=0;
+let logs = {};        // {id: {sets:[{reps,wt,note}], done:bool}}
+let history = [];
+let aiMsgs = [];
+let openCards = {};
+let logOpen = null;
+let tSecs=0, tRun=false, tIv=null, tMode="sw", tCD=0;
+let expandedHistory = {};
+let expandedPhases = {};
+
+// ═══════════════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════════════
+async function ld(k){
+  try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null;}catch{return null;}
+}
+async function sd(k,v){
+  try{await window.storage.set(k,JSON.stringify(v));}catch{}
+}
+async function boot(){
+  const h=await ld("mk:h"), ai=await ld("mk:ai"), pr=await ld("mk:pr");
+  if(h)history=h;
+  if(ai)aiMsgs=ai;
+  if(pr){cPh=Math.min(pr.p||0,PROG.length-1);cDay=pr.d||0;}
+  updateBadge();
+  renderToday();
+  renderHistory();
+  renderProgram();
+  renderAI();
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+const gP = () => PROG[cPh];
+const gD = () => gP().days[cDay];
+const gAll = () => gD().sections.flatMap(s=>s.ex);
+const gLog = id => logs[id]||{sets:[],done:false};
+const pd = n => String(n).padStart(2,"0");
+const fmt = s => `${pd(Math.floor(s/60))}:${pd(s%60)}`;
+const doneCount = () => gAll().filter(e=>gLog(e.id).done).length;
+
+function updateBadge(){
+  const ph=gP(),dy=gD();
+  document.getElementById("badge-num").textContent=`Ph ${ph.phase}`;
+  document.getElementById("badge-day").textContent=dy.day.replace("Session ","Sess ");
+}
+
+// ═══════════════════════════════════════════════════════
+// VIEW SWITCHING
+// ═══════════════════════════════════════════════════════
+function sv(v,el){
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+  document.getElementById("view-"+v).classList.add("on");
+  if(el)el.classList.add("on");
+  if(v==="history")renderHistory();
+  if(v==="program")renderProgram();
+  if(v==="coach")renderAI();
+}
+
+// ═══════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════
+function setMode(m){
+  tMode=m; tRun=false; clearInterval(tIv);
+  tSecs = m==="sw" ? 0 : m*60; tCD=tSecs;
+  document.getElementById("tdisp").textContent=fmt(tSecs);
+  document.getElementById("tdisp").classList.remove("warn","done");
+  document.getElementById("tbtn").textContent="Start";
+  ["sw","20","30","45"].forEach(k=>{
+    const el=document.getElementById("m-"+k);
+    if(el){el.className="btn btn-sm "+(String(m)===String(k)?"br":"bs");}
+  });
+}
+function toggleTimer(){
+  tRun=!tRun;
+  document.getElementById("tbtn").textContent=tRun?"Pause":"Resume";
+  if(tRun){
+    tIv=setInterval(()=>{
+      if(tMode==="sw") tSecs++;
+      else{
+        tSecs=Math.max(0,tSecs-1);
+        if(tSecs===0){tRun=false;clearInterval(tIv);document.getElementById("tbtn").textContent="Start";document.getElementById("tdisp").classList.add("done");}
+      }
+      document.getElementById("tdisp").textContent=fmt(tSecs);
+      document.getElementById("tdisp").classList.toggle("warn",tMode!=="sw"&&tSecs<60&&tSecs>0);
+    },1000);
+  }else clearInterval(tIv);
+}
+function resetTimer(){
+  clearInterval(tIv);tRun=false;
+  tSecs=tMode==="sw"?0:tCD;
+  document.getElementById("tdisp").textContent=fmt(tSecs);
+  document.getElementById("tdisp").classList.remove("warn","done");
+  document.getElementById("tbtn").textContent="Start";
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER TODAY
+// ═══════════════════════════════════════════════════════
+function renderToday(){
+  const ph=gP(), dy=gD(), all=gAll(), done=doneCount();
+  const pct=all.length?Math.round(done/all.length*100):0;
+  document.getElementById("prog-txt").textContent=`${done} of ${all.length} complete`;
+  document.getElementById("prog-pct").textContent=pct+"%";
+  document.getElementById("prog-fill").style.width=pct+"%";
+  document.getElementById("finish-main").innerHTML=`<b>${done}/${all.length}</b> done · ${fmt(tSecs)}`;
+  document.getElementById("finish-phase").textContent=`Phase ${ph.phase}: ${ph.name} · ${dy.day}`;
+  document.getElementById("finish-btn").disabled=done===0;
+
+  let h = `
+    <div class="phase-bar">
+      <div class="phase-ey">Phase ${ph.phase} · ${ph.weeks} · ${ph.freq}</div>
+      <div class="phase-ti">${ph.name} — ${dy.day}: ${dy.focus}</div>
+      <div class="phase-de">${ph.desc}</div>
+    </div>
+    <div class="sw-row">
+      ${PROG.map((p,pi)=>`<button class="btn btn-sm ${pi===cPh?"br":"bs"}" onclick="sPh(${pi})">Ph ${p.phase}</button>`).join("")}
+    </div>
+    <div class="sw-row">
+      ${ph.days.map((d,di)=>`<button class="btn btn-sm ${di===cDay?"ba":"bs"}" onclick="sDay(${di})">${d.day}</button>`).join("")}
+    </div>`;
+
+  dy.sections.forEach(sec=>{
+    h+=`<div class="sec-lbl">${sec.name}</div>`;
+    sec.ex.forEach(ex=>{
+      const log=gLog(ex.id), open=openCards[ex.id], lopen=logOpen===ex.id;
+      h+=`<div class="xcard${log.done?" done":""}${open?" open":""}" id="xc-${ex.id}">
+        <div class="xtop" onclick="tc('${ex.id}')">
+          <div style="flex:1">
+            <div class="xname">${ex.n}</div>
+            <div class="xmus">${ex.m}</div>
+            <div class="xtags">
+              <span class="xtag">${ex.sets} sets</span>
+              <span class="xtag">${ex.reps}</span>
+              <span class="xtag a">${ex.wt}</span>
+              ${log.sets.length?`<span class="xtag g">${log.sets.length} set${log.sets.length>1?"s":""} logged</span>`:""}
+            </div>
+          </div>
+          <span class="xchk">${log.done?"✓":"○"}</span>
+        </div>`;
+
+      if(open){
+        h+=`<div class="xpanel">
+          <div class="panel-lbl">Coaching Cue</div>
+          <div class="cue-txt">${ex.cue}</div>`;
+
+        if(ex.fire?.length){
+          h+=`<div class="panel-lbl">Firing Order</div><div class="fire-row">`;
+          ex.fire.forEach((f,fi)=>{
+            h+=`<span class="fstep${f.p?" p":""}">${f.t}</span>`;
+            if(fi<ex.fire.length-1) h+=`<span class="farrow">→</span>`;
+          });
+          h+=`</div>`;
+        }
+
+        if(ex.warn) h+=`<div class="warn-txt">${ex.warn}</div>`;
+
+        h+=`<div class="set-logger">
+          <div class="panel-lbl">Log Your Sets</div>
+          <div class="set-entries">`;
+
+        log.sets.forEach((s,si)=>{
+          h+=`<div class="set-entry">
+            <span class="snum">SET ${si+1}</span>
+            <span class="sdata">${s.reps} reps · ${s.wt}${s.note?` <span class="snote">· ${s.note}</span>`:""}</span>
+            <button class="rm-btn" onclick="rmSet('${ex.id}',${si})">✕</button>
+          </div>`;
+        });
+
+        h+=`</div>`;
+
+        if(lopen){
+          h+=`<div class="sform">
+            <input class="sin" id="ir-${ex.id}" type="text" inputmode="numeric" placeholder="Reps" onkeydown="if(event.key==='Enter')addSet('${ex.id}')"/>
+            <input class="sin" id="iw-${ex.id}" type="text" placeholder="Weight / BW" onkeydown="if(event.key==='Enter')addSet('${ex.id}')"/>
+            <input class="sin full" id="in-${ex.id}" type="text" placeholder="Notes (optional — form cues, how it felt...)" onkeydown="if(event.key==='Enter')addSet('${ex.id}')"/>
+          </div>
+          <div class="sbtns">
+            <button class="btn btn-sm br" onclick="addSet('${ex.id}')">+ Add Set</button>
+            <button class="btn btn-sm bs" onclick="closeLog()">Done</button>
+          </div>`;
+        }else{
+          h+=`<button class="btn btn-sm bs" style="margin-top:3px" onclick="openLog('${ex.id}')">+ Log Set</button>`;
+        }
+
+        h+=`</div>
+          <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
+            <button class="btn btn-sm bo${log.done?" ck":""}" onclick="toggleDone('${ex.id}')">${log.done?"✓ Complete":"Mark Complete"}</button>
+          </div>
+        </div>`;
+      }
+
+      h+=`</div>`;
+    });
+  });
+
+  h+=`<div style="margin-top:18px">
+    <div class="panel-lbl" style="color:var(--dim)">Session Notes</div>
+    <textarea class="session-note" id="session-note" rows="3" placeholder="How did this session feel? Pain, compensation patterns you noticed, wins, energy level..."></textarea>
+  </div>`;
+
+  document.getElementById("today-ctr").innerHTML=h;
+
+  // Restore focus if logger was open
+  if(logOpen){
+    const el=document.getElementById("ir-"+logOpen);
+    if(el) setTimeout(()=>el.focus(),50);
+  }
+}
+
+function sPh(pi){cPh=pi;cDay=0;logs={};openCards={};logOpen=null;updateBadge();renderToday();}
+function sDay(di){cDay=di;logs={};openCards={};logOpen=null;updateBadge();renderToday();}
+
+function tc(id){
+  openCards[id]=!openCards[id];
+  if(logOpen!==id) logOpen=null;
+  renderToday();
+  setTimeout(()=>{
+    const el=document.getElementById("xc-"+id);
+    if(el&&openCards[id]) el.scrollIntoView({behavior:"smooth",block:"nearest"});
+  },50);
+}
+
+function openLog(id){logOpen=id;renderToday();}
+function closeLog(){logOpen=null;renderToday();}
+
+function addSet(id){
+  const r=document.getElementById("ir-"+id);
+  const w=document.getElementById("iw-"+id);
+  const n=document.getElementById("in-"+id);
+  if(!r||!r.value.trim())return;
+  const prev=gLog(id);
+  logs[id]={...prev,sets:[...prev.sets,{reps:r.value.trim(),wt:w?.value.trim()||"BW",note:n?.value.trim()||""}]};
+  renderToday();
+}
+
+function rmSet(id,idx){
+  const prev=gLog(id);
+  logs[id]={...prev,sets:prev.sets.filter((_,i)=>i!==idx)};
+  renderToday();
+}
+
+function toggleDone(id){
+  const prev=gLog(id);
+  logs[id]={...prev,done:!prev.done};
+  renderToday();
+}
+
+// ═══════════════════════════════════════════════════════
+// FINISH SESSION
+// ═══════════════════════════════════════════════════════
+async function finishSession(){
+  const ph=gP(), dy=gD(), all=gAll();
+  const noteEl=document.getElementById("session-note");
+  const session={
+    phase:cPh+1, phaseName:ph.name,
+    dayIdx:cDay, dayName:dy.day, focus:dy.focus,
+    date:new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}),
+    timestamp:Date.now(),
+    duration:fmt(tSecs),
+    note:noteEl?.value||"",
+    exercises:all.map(e=>({
+      id:e.id, name:e.n, muscles:e.m,
+      target:{sets:e.sets,reps:e.reps,wt:e.wt},
+      logged:gLog(e.id).sets,
+      done:gLog(e.id).done
+    }))
+  };
+
+  history=[session,...history];
+  await sd("mk:h",history);
+
+  // Advance
+  let np=cPh, nd=cDay+1;
+  if(nd>=gP().days.length){nd=0;np=Math.min(np+1,PROG.length-1);}
+  cPh=np; cDay=nd;
+  await sd("mk:pr",{p:np,d:nd});
+
+  logs={}; openCards={}; logOpen=null;
+  resetTimer();
+  updateBadge();
+  renderToday();
+  renderHistory();
+
+  // Switch to coach and analyze
+  const coachTab=document.querySelector(".tab:nth-child(3)");
+  sv("coach",coachTab);
+  await aiAnalyze(session);
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════
+function renderHistory(){
+  const totalSessions=history.length;
+  const totalSets=history.reduce((a,s)=>a+s.exercises.reduce((b,e)=>b+e.logged.length,0),0);
+  const totalDone=history.reduce((a,s)=>a+s.exercises.filter(e=>e.done).length,0);
+
+  let h=`<div class="phase-bar" style="margin-bottom:12px">
+    <div class="phase-ey">Session History</div>
+    <div class="phase-ti">${totalSessions} Sessions Logged</div>
+  </div>`;
+
+  if(totalSessions>0){
+    h+=`<div class="stats-strip">
+      <div class="stat-box"><div class="stat-num">${totalSessions}</div><div class="stat-lbl">Sessions</div></div>
+      <div class="stat-box"><div class="stat-num">${totalSets}</div><div class="stat-lbl">Total Sets</div></div>
+      <div class="stat-box"><div class="stat-num">${totalDone}</div><div class="stat-lbl">Exercises Done</div></div>
+    </div>`;
+  }
+
+  if(!history.length){
+    h+=`<div class="empty"><div class="eicon">📋</div>No sessions yet.<br>Complete your first session and it will appear here with all your logged sets.</div>`;
+  }
+
+  history.forEach((s,i)=>{
+    const logged=s.exercises?.filter(e=>e.logged?.length>0)||[];
+    const exp=expandedHistory[i];
+    h+=`<div class="hist-card">
+      <div class="hist-head">
+        <div>
+          <div class="hist-title">Phase ${s.phase}: ${s.phaseName} · ${s.dayName}</div>
+          <div class="hist-meta">${s.date} · ${s.duration} · ${s.exercises?.filter(e=>e.done).length||0}/${s.exercises?.length||0} complete</div>
+          ${s.note?`<div class="hist-note">"${s.note}"</div>`:""}
+        </div>
+        <span class="hist-badge">#${history.length-i}</span>
+      </div>
+      ${logged.length?`
+        <div class="hist-ex">
+          <div class="hist-ex-row">
+            ${exp ? logged.map(e=>`<div style="margin-bottom:4px"><b>${e.name}</b><br>${e.logged.map((s,si)=>`<span style="color:#555">Set ${si+1}</span> ${s.reps} reps @ ${s.wt}${s.note?` <em style="color:#444">(${s.note})</em>`:""}`).join(" · ")}</div>`).join("") : logged.slice(0,3).map(e=>`<b>${e.name}</b> ${e.logged.map(s=>`${s.reps}r@${s.wt}`).join(" · ")}`).join("<br>")}
+          </div>
+          ${logged.length>0?`<button class="hist-expand" onclick="toggleHistExpand(${i})">${exp?"▲ Less":"▼ Full detail"}</button>`:""}
+        </div>
+      `:""}
+    </div>`;
+  });
+
+  document.getElementById("hist-ctr").innerHTML=h;
+}
+
+function toggleHistExpand(i){
+  expandedHistory[i]=!expandedHistory[i];
+  renderHistory();
+}
+
+// ═══════════════════════════════════════════════════════
+// PROGRAM VIEW
+// ═══════════════════════════════════════════════════════
+function renderProgram(){
+  let h=`<div class="phase-bar" style="margin-bottom:12px">
+    <div class="phase-ey">Full Program — 4 Phases · 8 Sessions</div>
+    <div class="phase-ti">Ground Up to Athletic · Longevity Focus</div>
+    <div class="phase-de">Neuromuscular reprogramming → Fundamental patterns → Loaded strength → Full integration</div>
+  </div>`;
+
+  PROG.forEach((p,pi)=>{
+    const exp=expandedPhases[pi];
+    const isCur=pi===cPh;
+    h+=`<div class="prog-ph-card${isCur?" cur":""}">
+      <div class="prog-ph-hd" onclick="togglePhaseExp(${pi})">
+        <div class="phase-ey" style="color:${p.color}">Phase ${p.phase} · ${p.weeks} · ${p.freq}</div>
+        <div class="prog-ph-title">
+          <span>${p.name} — ${p.sub}</span>
+          <span style="display:flex;gap:6px;align-items:center">
+            ${isCur?`<span style="font-size:.55rem;color:var(--green);background:var(--gdim);padding:2px 7px;border-radius:2px;border:1px solid rgba(39,174,96,.3)">CURRENT</span>`:""}
+            <span style="color:var(--dim);font-size:.7rem">${exp?"▲":"▼"}</span>
+          </span>
+        </div>
+        <div class="prog-ph-desc">${p.desc}</div>
+      </div>
+      <div class="phase-ex-detail${exp?" open":""}">
+        ${p.days.map(d=>`
+          <div class="prog-day">
+            <b>${d.day}: ${d.focus}</b>
+            <div class="prog-day-exs">
+              ${d.sections.map(sec=>`<span style="color:var(--adim)">${sec.name}:</span> ${sec.ex.map(e=>`<span>${e.n}</span>`).join(" · ")}`).join("<br>")}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>`;
+  });
+
+  document.getElementById("prog-ctr").innerHTML=h;
+}
+
+function togglePhaseExp(pi){
+  expandedPhases[pi]=!expandedPhases[pi];
+  renderProgram();
+}
+
+// ═══════════════════════════════════════════════════════
+// AI COACH
+// ═══════════════════════════════════════════════════════
+function renderAI(){
+  const wrap=document.getElementById("ai-msgs");
+  if(!aiMsgs.length){
+    wrap.innerHTML=`
+      <div class="ai-header">
+        <div class="phase-ey">AI Personal Trainer</div>
+        <div class="phase-ti">Coach Claude</div>
+        <div class="phase-de">Analyzes your sessions, identifies compensation patterns and firing order failures, and adapts your program. Finishes a session to get automatic feedback — or ask anything now.</div>
+      </div>
+      <div class="empty" style="padding:20px 0">
+        <div class="eicon">🏋️</div>
+        Complete a session and I'll analyze your performance automatically.<br>Or ask me anything about the program right now.
+      </div>
+      ${["Why can't I feel my right glute firing?",
+         "How do I know if my firing order is correct?",
+         "What should I focus on most in Phase 1?",
+         "My right knee keeps caving inward — what's causing it?",
+         "How do I fix anterior pelvic tilt?",
+         "What's the difference between glute max and glute med work?"].map(q=>`<button class="qbtn" onclick="fillAI('${q}')">${q}</button>`).join("")}`;
+    return;
+  }
+  wrap.innerHTML=aiMsgs.map(m=>`
+    <div class="aim ${m.role==="user"?"u":"a"}" style="${m.role==="user"?"margin-left:auto":""}">
+      ${m.content.replace(/\n/g,"<br>").replace(/\*\*(.*?)\*\*/g,"<b>$1</b>")}
+    </div>`).join("");
+  setTimeout(()=>{wrap.scrollTop=wrap.scrollHeight;},50);
+}
+
+function fillAI(q){
+  document.getElementById("ai-in").value=q;
+  document.getElementById("ai-in").focus();
+}
+
+async function aiAnalyze(session){
+  const msg=`I just finished a training session. Please analyze my performance and give me specific coaching feedback.\n\nSession data:\n${JSON.stringify(session,null,2)}\n\nPlease: 1) Note what went well, 2) Identify any compensation patterns or concerns from the logged data, 3) Give me 2-3 specific things to focus on in my next session, 4) Flag any weight progressions I should make.`;
+  await callAI(msg);
+}
+
+async function sendAI(){
+  const inp=document.getElementById("ai-in");
+  const msg=inp?.value?.trim();
+  if(!msg||document.getElementById("ai-send").disabled)return;
+  inp.value="";
+  await callAI(msg);
+}
+
+async function callAI(userMsg){
+  const sys=`You are Mike's personal trainer and neuromuscular rehabilitation coach. Mike is 42 years old rebuilding his body from scratch. Goals: longevity, health, mobility.
+
+CRITICAL CONTEXT:
+- Right glute not firing correctly → internal knee rotation → anterior pelvic tilt
+- Gluteal amnesia: glutes inhibited, synergists dominating (TFL, hamstrings, lumbar erectors)
+- TFL dominance over glute med causing right knee to track inward
+- Difficulty with explosive activities and breathing (diaphragm dysfunction)  
+- Starting from zero — neuromuscular reprogramming first, strength second
+
+EQUIPMENT: Major Fitness power rack + cable system, bumper plates to 245lb, 45lb Olympic bar, bench press attachment, landmine attachment, rope/straight bar/D-handles/ankle strap cable attachments, Iron Neck device.
+
+COACHING STYLE:
+- Specific and evidence-based — reference actual logged data
+- Identify firing order failures from the session data
+- Celebrate genuine wins — he's rebuilding from a difficult baseline
+- Adjust recommendations based on what the numbers show
+- Flag when weight is too heavy (lower back compensating, right knee caving) or too light (completed all sets easily)
+- Long-term perspective: longevity and mobility over max numbers
+- Keep responses focused and actionable — no filler
+
+TRAINING HISTORY (last 3 sessions):
+${JSON.stringify(history.slice(0,3),null,2)}`;
+
+  aiMsgs=[...aiMsgs,{role:"user",content:userMsg}];
+  document.getElementById("ai-send").disabled=true;
+
+  // Show loading
+  const wrap=document.getElementById("ai-msgs");
+  wrap.innerHTML+=`<div class="aim a loading" id="ai-loading">Analyzing your session...</div>`;
+  wrap.scrollTop=wrap.scrollHeight;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-6",
+        max_tokens:1000,
+        system:sys,
+        messages:aiMsgs
+      })
+    });
+    const data=await res.json();
+    const reply=data.content?.[0]?.text||"Unable to get a response right now. Please try again.";
+    aiMsgs=[...aiMsgs,{role:"assistant",content:reply}];
+    await sd("mk:ai",aiMsgs.slice(-24));
+  }catch(e){
+    aiMsgs=[...aiMsgs,{role:"assistant",content:"Connection error. Check your network and try again."}];
+  }
+
+  document.getElementById("ai-send").disabled=false;
+  renderAI();
+}
+
+// ═══════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════
+boot();
+</script>
+</body>
+</html>
