@@ -671,19 +671,19 @@ let expandedHistory = {};
 let expandedPhases = {};
 
 // ═══════════════════════════════════════════════════════
-// STORAGE
+// STORAGE — localStorage works everywhere
 // ═══════════════════════════════════════════════════════
-async function ld(k){
-  try{const r=await window.storage.get(k);return r?JSON.parse(r.value):null;}catch{return null;}
+function ld(k){
+  try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;}
 }
-async function sd(k,v){
-  try{await window.storage.set(k,JSON.stringify(v));}catch{}
+function sd(k,v){
+  try{localStorage.setItem(k,JSON.stringify(v));}catch{}
 }
-async function boot(){
-  const h=await ld("mk:h"), ai=await ld("mk:ai"), pr=await ld("mk:pr");
+function boot(){
+  const h=ld("mk:h"),ai=ld("mk:ai"),pr=ld("mk:pr");
   if(h)history=h;
   if(ai)aiMsgs=ai;
-  if(pr){cPh=Math.min(pr.p||0,PROG.length-1);cDay=pr.d||0;}
+  if(pr){cPh=Math.min(pr.p||0,PROG.length-1);cDay=Math.min(pr.d||0,(PROG[pr.p||0]?.days.length||1)-1);}
   updateBadge();
   renderToday();
   renderHistory();
@@ -913,7 +913,7 @@ function toggleDone(id){
 // ═══════════════════════════════════════════════════════
 // FINISH SESSION
 // ═══════════════════════════════════════════════════════
-async function finishSession(){
+function finishSession(){
   const ph=gP(), dy=gD(), all=gAll();
   const noteEl=document.getElementById("session-note");
   const session={
@@ -932,13 +932,13 @@ async function finishSession(){
   };
 
   history=[session,...history];
-  await sd("mk:h",history);
+  sd("mk:h",history);
 
   // Advance
   let np=cPh, nd=cDay+1;
   if(nd>=gP().days.length){nd=0;np=Math.min(np+1,PROG.length-1);}
   cPh=np; cDay=nd;
-  await sd("mk:pr",{p:np,d:nd});
+  sd("mk:pr",{p:np,d:nd});
 
   logs={}; openCards={}; logOpen=null;
   resetTimer();
@@ -949,7 +949,7 @@ async function finishSession(){
   // Switch to coach and analyze
   const coachTab=document.querySelector(".tab:nth-child(3)");
   sv("coach",coachTab);
-  await aiAnalyze(session);
+  aiAnalyze(session);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1136,20 +1136,15 @@ ${JSON.stringify(history.slice(0,3),null,2)}`;
   wrap.scrollTop=wrap.scrollHeight;
 
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
+    const res=await fetch("/.netlify/functions/coach",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:1000,
-        system:sys,
-        messages:aiMsgs
-      })
+      body:JSON.stringify({system:sys,messages:aiMsgs})
     });
     const data=await res.json();
     const reply=data.content?.[0]?.text||"Unable to get a response right now. Please try again.";
     aiMsgs=[...aiMsgs,{role:"assistant",content:reply}];
-    await sd("mk:ai",aiMsgs.slice(-24));
+    sd("mk:ai",aiMsgs.slice(-24));
   }catch(e){
     aiMsgs=[...aiMsgs,{role:"assistant",content:"Connection error. Check your network and try again."}];
   }
